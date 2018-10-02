@@ -7,6 +7,7 @@ output: html_document
 
 ```{r}
 library(tidyverse)
+library(ggfortify)
 ```
 
 ```{r}
@@ -30,10 +31,92 @@ raw_data %>%
 ```
 
 ```{r}
-subset_small <- cbind(raw_data$X.Patient_id, raw_data$SEX, raw_data$Age.at.Dx, raw_data$Chemo.Simplest, raw_data$Overall_Survival)
+raw_data %>%
+  ggplot(aes(x=Overall_Survival, y=Age.at.Dx, shape=Chemo.Simplest, colour=Chemo.Simplest)) +
+  geom_point()
+```
+```{r}
+raw_data %>%
+  ggplot(aes(x=Chemo.Simplest)) +
+  geom_bar()
+```
+
+
+```{r}
+enzyme_data <- raw_data[,42:272]
 ```
 
 ```{r}
-as.tibble(t(subset_small))
+View(enzyme_data)
+```
+
+```{r}
+enzyme_data <- data.matrix(enzyme_data)
+```
+
+```{r}
+pca_enzyme <- prcomp(enzyme_data)
+```
+
+```{r}
+View(pca_enzyme)
+```
+
+```{r}
+autoplot(pca_enzyme)
+```
+
+```{r}
+pca_enzyme_12 <- as.data.frame(pca_enzyme$x[,3:4])
+```
+
+```{r}
+pca_enzyme_12 %>%
+  ggplot(aes(PC3, PC4)) +
+  geom_point()
+```
+
+```{r}
+alive <- raw_data %>%
+  filter(vital.status %in% c('A'))
+```
+
+```{r}
+as.tibble(alive)
+```
+
+```{r}
+alive %>%
+  ggplot(aes(x=Overall_Survival)) +
+  geom_histogram(bins=5)
+```
+
+```{r}
+over260 <- raw_data %>%
+  filter(Overall_Survival >= 260)
+```
+
+```{r}
+over260 %>%
+  filter(vital.status == 'A')
+```
+
+```{r}
+as.tibble(over260)
+```
+```{r}
+library(fastICA)
+```
+
+```{r}
+i <- fastICA(enzyme_data, n.comp = 5)
+```
+
+```{r}
+i$S
+```
+
+```{r}
+heatmap(i$S)
 ```
 
