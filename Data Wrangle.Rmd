@@ -1,0 +1,39 @@
+---
+title: "Data Clean"
+author: "Kendall Anderson"
+date: "10/2/2018"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+raw_data <- read.csv(file="trainingData-release.csv", header=TRUE, sep=",")
+```
+
+```{r}
+as.tibble(raw_data)
+```
+
+```{r}
+raw_data %>%
+  ggplot(aes(x=Overall_Survival, y=Age.at.Dx, colour=SEX)) +
+  geom_point()
+```
+
+```{r}
+raw_data %>%
+  ggplot(aes(x=Overall_Survival, fill=Chemo.Simplest)) +
+  geom_histogram(aes(colour=Age.at.Dx))
+```
+
+```{r}
+subset_small <- cbind(raw_data$X.Patient_id, raw_data$SEX, raw_data$Age.at.Dx, raw_data$Chemo.Simplest, raw_data$Overall_Survival)
+```
+
+```{r}
+as.tibble(t(subset_small))
+```
+
