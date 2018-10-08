@@ -106,3 +106,106 @@ non_survivors_protein <- non_survivors %>%
 View(non_survivors_protein)
 ```
 
+### PCA
+
+```{r}
+survivors_no_id <- survivors_protein %>%
+  select(AKT1,
+         AKT1_2_3.pS473,
+         BAD,
+         BAD.pS112,
+         BAD.pS136,
+         BAD.pS155,
+         GSKA_B,
+         GSKA_B.pS21_9,
+         KIT,
+         NPM1,
+         NPM1.3542,
+         STAT1,
+         STAT1.pY701,
+         STAT3,
+         STAT3.pS727,
+         STAT3.pY705,
+         STAT5A_B,
+         STAT5A_B.pY694,
+         TP53,
+         TP53.pS15)
+```
+
+```{r}
+non_survivors_no_id <- non_survivors_protein %>%
+  select(AKT1,
+         AKT1_2_3.pS473,
+         BAD,
+         BAD.pS112,
+         BAD.pS136,
+         BAD.pS155,
+         GSKA_B,
+         GSKA_B.pS21_9,
+         KIT,
+         NPM1,
+         NPM1.3542,
+         STAT1,
+         STAT1.pY701,
+         STAT3,
+         STAT3.pS727,
+         STAT3.pY705,
+         STAT5A_B,
+         STAT5A_B.pY694,
+         TP53,
+         TP53.pS15)
+```
+
+```{r}
+pca_survivors <- prcomp(survivors_no_id)
+```
+
+```{r}
+pca_non_survivors <- prcomp(non_survivors_no_id)
+```
+
+```{r}
+autoplot(pca_survivors)
+```
+
+```{r}
+autoplot(pca_non_survivors)
+```
+
+```{r}
+combined_prot <- rbind(survivors_protein, non_survivors_protein
+                       )
+```
+
+```{r}
+combined_prot_no_ids <- combined_prot %>%
+    select(AKT1,
+         AKT1_2_3.pS473,
+         BAD,
+         BAD.pS112,
+         BAD.pS136,
+         BAD.pS155,
+         GSKA_B,
+         GSKA_B.pS21_9,
+         KIT,
+         NPM1,
+         NPM1.3542,
+         STAT1,
+         STAT1.pY701,
+         STAT3,
+         STAT3.pS727,
+         STAT3.pY705,
+         STAT5A_B,
+         STAT5A_B.pY694,
+         TP53,
+         TP53.pS15)
+```
+
+```{r}
+pca_combined <- prcomp(combined_prot_no_ids)
+```
+
+```{r}
+autoplot(pca_combined)
+```
+
