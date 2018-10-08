@@ -1,0 +1,53 @@
+---
+title: "Untitled"
+author: "Kendall Anderson"
+date: "10/8/2018"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(ggfortify)
+library(dplyr)
+```
+
+```{r}
+raw_data <- read.csv(file="trainingData-release.csv", header=TRUE, sep=",")
+```
+
+```{r}
+over260 <- raw_data %>%
+  filter(Overall_Survival >= 260)
+```
+
+```{r}
+non_survivors <- over260 %>%
+  filter(vital.status == 'D' & Remission_Duration < 260)
+```
+
+```{r}
+as.tibble(non_survivors)
+```
+
+```{r}
+deceased <- raw_data %>%
+  filter(vital.status == 'D' & Overall_Survival < 260)
+```
+
+```{r}
+non_survivors <- rbind(deceased, non_survivors)
+```
+
+```{r}
+survivors <- over260 %>%
+  filter(vital.status == 'A')
+```
+
+```{r}
+as.tibble(survivors)
+```
+
+```{r}
+as.tibble(non_survivors)
+```
+
