@@ -51,3 +51,58 @@ as.tibble(survivors)
 as.tibble(non_survivors)
 ```
 
+Separate out protein data
+```{r}
+survivors_protein <- survivors %>%
+  select(X.Patient_id,
+         AKT1,
+         AKT1_2_3.pS473,
+         BAD,
+         BAD.pS112,
+         BAD.pS136,
+         BAD.pS155,
+         GSKA_B,
+         GSKA_B.pS21_9,
+         KIT,
+         NPM1,
+         NPM1.3542,
+         STAT1,
+         STAT1.pY701,
+         STAT3,
+         STAT3.pS727,
+         STAT3.pY705,
+         STAT5A_B,
+         STAT5A_B.pY694,
+         TP53,
+         TP53.pS15)
+```
+
+```{r}
+non_survivors_protein <- non_survivors %>%
+    select(X.Patient_id,
+         AKT1,
+         AKT1_2_3.pS473,
+         BAD,
+         BAD.pS112,
+         BAD.pS136,
+         BAD.pS155,
+         GSKA_B,
+         GSKA_B.pS21_9,
+         KIT,
+         NPM1,
+         NPM1.3542,
+         STAT1,
+         STAT1.pY701,
+         STAT3,
+         STAT3.pS727,
+         STAT3.pY705,
+         STAT5A_B,
+         STAT5A_B.pY694,
+         TP53,
+         TP53.pS15)
+```
+
+```{r}
+View(non_survivors_protein)
+```
+
