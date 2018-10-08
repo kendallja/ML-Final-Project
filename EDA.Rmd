@@ -209,3 +209,122 @@ pca_combined <- prcomp(combined_prot_no_ids)
 autoplot(pca_combined)
 ```
 
+### Scree Plot
+
+```{r}
+layout(matrix(1:2, ncol = 2))  
+  screeplot(pca_survivors, type="lines", main="PCA Survivors")
+  screeplot(pca_non_survivors, type="lines", main="PCA Non-Survivors")
+```
+
+### Silhouette
+
+```{r}
+library(cluster)
+k.max <- 15
+data <- survivors_no_id
+sil <- rep(0, k.max)
+```
+
+```{r}
+# Compute the average silhouette width
+# k = 2 to k = 15
+for(i in 2:k.max){
+  km.res <- kmeans(data, centers = i, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(data))
+  sil[i] <- mean(ss[, 3])
+}
+```
+
+```{r}
+# Plot the  average silhouette width
+plot(1:k.max, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+```
+
+
+```{r}
+library(cluster)
+k.max <- 15
+data <- non_survivors_no_id
+sil <- rep(0, k.max)
+```
+
+```{r}
+# Compute the average silhouette width
+# k = 2 to k = 15
+for(i in 2:k.max){
+  km.res <- kmeans(data, centers = i, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(data))
+  sil[i] <- mean(ss[, 3])
+}
+```
+
+```{r}
+# Plot the  average silhouette width
+plot(1:k.max, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+```
+
+
+
+```{r}
+library(cluster)
+k.max <- 15
+data <- combined_prot_no_ids
+sil <- rep(0, k.max)
+```
+
+```{r}
+# Compute the average silhouette width
+# k = 2 to k = 15
+for(i in 2:k.max){
+  km.res <- kmeans(data, centers = i, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(data))
+  sil[i] <- mean(ss[, 3])
+}
+```
+
+```{r}
+# Plot the  average silhouette width
+plot(1:k.max, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+```
+
+### K-means
+
+```{r}
+set.seed(876)
+autoplot(kmeans(combined_prot_no_ids, 3), data=combined_prot, label=TRUE)
+```
+
+```{r}
+k <- kmeans(combined_prot_no_ids, 3)
+```
+
+```{r}
+#View(k)
+```
+
+```{r}
+#one <- k$cluster == 1
+```
+
+```{r}
+#two <- k$cluster == 2
+```
+
+```{r}
+#three <- k$cluster == 3
+```
+
+```{r}
+#View(one)
+```
+
+
+
+
