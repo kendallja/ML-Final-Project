@@ -216,6 +216,10 @@ layout(matrix(1:2, ncol = 2))
   screeplot(pca_survivors, type="lines", main="PCA Survivors")
   screeplot(pca_non_survivors, type="lines", main="PCA Non-Survivors")
 ```
+```{r}
+screeplot(pca_combined, type="lines", main="PCA Combined")
+```
+
 
 ### Silhouette
 
@@ -325,6 +329,40 @@ k <- kmeans(combined_prot_no_ids, 3)
 #View(one)
 ```
 
+```{r}
+library(Rtsne)
+```
+
+```{r}
+Labels <- combined_prot$X.Patient_id   # assign the true labels to a new vector and make them factors
+combined_prot$X.Patient_id <- as.factor(combined_prot$X.Patient_id)
+```
+
+```{r}
+colors = rainbow(length(unique(combined_prot$X.Patient_id))) # a way to make the plot pretty
+names(colors) = unique(combined_prot$X.Patient_id)
+```
+
+```{r}
+tsne <- Rtsne(combined_prot[,-1], dims = 2, perplexity = 30, verbose = TRUE, max_iter = 500) # perform tsne for 2 dimensions
+
+```
+
+```{r}
+plot(tsne$Y, t='n', main="tsne")   # plot the tsne
+text(tsne$Y, labels=combined_prot$X.Patient_id, col=colors[combined_prot$X.Patient_id])
+```
+
+```{r}
+set.seed(890)
+tsne <- Rtsne(combined_prot_no_ids, dims = 2, perplexity=30, verbose=TRUE) 
+
+tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2], col = k$cluster)
+```
+
+```{r}
+ggplot(tsne_plot) + geom_point(aes(x=x, y=y, color = col))
+```
 
 
 
