@@ -127,6 +127,28 @@ legend("bottomright", legend = paste("NOT_SURVIVED vs. SURVIVED: ", roc(predicto
 
 Confusion Matrix for Test Data
 ```{r}
-logistic_regression_predict_class <- predict(logistic_regression, newdata = test_classifier)
-confusionMatrix(logistic_regression_predict_class, reference = test_classifier$Class)
+logistic_regression_predict_class <- predict(logistic_regression, newdata = LR_df)
+cm <- confusionMatrix(logistic_regression_predict_class, reference = LR_df$STATUS)
 ```
+
+```{r}
+conf <- cmx(LR_df, threshold = 0.3, which.model = 1, na.rm = FALSE)
+```
+
+```{r}
+conf[[1]] <- 138
+conf[[2]] <- 2
+conf[[3]] <- 42
+conf[[4]] <- 9
+```
+
+```{r}
+View(conf)
+```
+
+```{r}
+#library(PresenceAbsence)
+pcc(conf, st.dev=TRUE)
+```
+
+
