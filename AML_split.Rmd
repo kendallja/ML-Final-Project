@@ -1,0 +1,137 @@
+---
+title: "AML_split_data"
+author: "Kendall Anderson"
+date: "11/8/2018"
+output: html_document
+---
+
+```{r}
+# load necessary libraries
+library(tidyverse)
+library(ggfortify)
+library(dplyr)
+library(caret)
+library(cluster)
+library(pROC)
+```
+
+```{r}
+# read in data
+raw_data <- read.csv(file="trainingData-release.csv", header=TRUE, sep=",")
+```
+
+```{r}
+# add survivor column to set 
+raw_data$STATUS <- ifelse(raw_data$Overall_Survival >= 260, 'SURVIVED', 
+                                ifelse(raw_data$Overall_Survival < 260, 'NOT_SURVIVED', NA))
+```
+
+```{r}
+View(raw_data)
+```
+
+```{r}
+# pull enzyme data
+enzymes <- raw_data[42:273]
+# change STATUS to factor
+enzymes$STATUS <- as.factor(enzymes$STATUS)
+# omit NA
+enzymes <- na.omit(enzymes)
+# view data
+as.tibble(enzymes)
+``` 
+
+```{r}
+# split into test and train datasets
+train_size <- floor(0.75 * nrow(enzymes))
+set.seed(543)
+train_pos <- sample(seq_len(nrow(enzymes)), size = train_size)
+train_data <- enzymes[train_pos,]
+test_data <- enzymes[-train_pos,]
+
+dim(train_data)
+dim(test_data)
+```
+
+### Feature Selection
+```{r}
+# set seed
+set.seed(723)
+# define control
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+# run RFE algorithm
+AML_rfe <- rfe(train_data[,1:230], train_data[,231], sizes=c(1:230), rfeControl=control)
+# summarize results
+print(AML_rfe)
+# print selected features
+predictors(AML_rfe)
+# plot results
+plot(AML_rfe, type=c("g", "o"))
+```
+
+```{r}
+# top five feature-selected enzymes into new dataframe
+#top_five_train <- data.frame(train_data$HSPA1A_L, train_data$BCL2L1, train_data$CASP9.cl315, train_data$ATF3, train_data$XIAP, train_data$STATUS)
+
+#top_five_test <- data.frame(test_data$HSPA1A_L, test_data$BCL2L1, test_data$CASP9.cl315, test_data$ATF3, test_data$XIAP, test_data$STATUS)
+```
+
+```{r}
+# top ten feature-selected enzymes into new dataframe
+#top_ten_train <- data.frame(train_data$HSPA1A_L, train_data$BCL2L1, train_data$CASP9.cl315, train_data$ATF3, train_data$XIAP, train_data$STK11, train_data$TRIM24, train_data$ZNF296, train_data$CCND1, train_data$CASP7.cl198, train_data$STATUS)
+```
+
+```{r}
+#as.tibble(top_five_train)
+```
+
+```{r}
+as.tibble(train_data)
+```
+
+### Logistic Regression
+```{r}
+ctrl <- trainControl(method = "repeatedcv", repeats = 5, classProbs = T, savePredictions = T)
+
+lr_five <- train(STATUS ~ HSPA1A_L + BCL2L1 + CASP9.cl315 + ATF3 + XIAP, data = train_data, method = "glm", family= "binomial", trControl = ctrl)
+
+lr_ten <- train(STATUS ~ HSPA1A_L + BCL2L1 + CASP9.cl315 + ATF3 + XIAP + STK11 + TRIM24 + ZNF296 + CCND1 + CASP7.cl198, data = train_data, method = "glm", family= "binomial", trControl = ctrl)
+```
+
+```{r}
+lr_five_predict <- predict(lr_five, newdata = train_data)
+
+lr_ten_predict <- predict(lr_ten, newdata = train_data)
+```
+
+```{r}
+confusionMatrix(lr_five_predict, reference = train_data$STATUS)
+`````
+
+```{r}
+confusionMatrix(lr_ten_predict, reference = train_data$STATUS)
+```
+
+```{r}
+# ROC Curve for top five
+plot(x = roc(predictor = lr_five$pred$NOT_SURVIVED, response = lr_five$pred$obs)$specificities, y = roc(predictor = lr_five$pred$NOT_SURVIVED, response = lr_five$pred$obs)$sensitivities, col= "purple", xlim = c(1, 0), type ="l", ylab = "Sensitivity", xlab = "Specificity")
+legend("bottomright", legend = paste("NOT_SURVIVED vs. SURVIVED: ", roc(predictor = lr_five$pred$NOT_SURVIVED, response = lr_five$pred$obs)$auc
+, sep = ""), col = c("purple"), fill = c("purple"))
+```
+
+```{r}
+# ROC Curve for top ten
+plot(x = roc(predictor = lr_ten$pred$NOT_SURVIVED, response = lr_ten$pred$obs)$specificities, y = roc(predictor = lr_ten$pred$NOT_SURVIVED, response = lr_ten$pred$obs)$sensitivities, col= "purple", xlim = c(1, 0), type ="l", ylab = "Sensitivity", xlab = "Specificity")
+legend("bottomright", legend = paste("NOT_SURVIVED vs. SURVIVED: ", roc(predictor = lr_ten$pred$NOT_SURVIVED, response = lr_ten$pred$obs)$auc
+, sep = ""), col = c("purple"), fill = c("purple"))
+```
+
+
+
+
+
+
+
+
+
+
