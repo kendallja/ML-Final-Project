@@ -1,0 +1,139 @@
+---
+title: "Untitled"
+author: "Kiran Sundaram"
+date: "10/31/2018"
+output: html_document
+---
+
+```{r}
+# load necessary libraries
+library(tidyverse)
+library(ggfortify)
+library(dplyr)
+library(caret)
+library(cluster)
+library(pROC)
+```
+
+```{r}
+# read in data
+raw_data <- read.csv(file="trainingData-release.csv", header=TRUE, sep=",")
+```
+
+```{r}
+# add survivor column to set 
+raw_data$STATUS <- ifelse(raw_data$Overall_Survival >= 260, 'SURVIVED', 
+                                ifelse(raw_data$Overall_Survival < 260, 'NOT_SURVIVED', NA))
+```
+
+```{r}
+View(raw_data)
+```
+
+```{r}
+# pull enzyme data
+enzymes <- raw_data[42:273]
+# change STATUS to factor
+enzymes$STATUS <- as.factor(enzymes$STATUS)
+# omit NA
+enzymes <- na.omit(enzymes)
+# view data
+as.tibble(enzymes)
+``` 
+### Feature Selection
+```{r}
+# set seed
+set.seed(7)
+# define control
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+# run RFE algorithm
+AML.results <- rfe(enzymes[,1:230], enzymes[,231], sizes=c(1:230), rfeControl=control)
+# summarize results
+print(AML.results)
+# print selected features
+predictors(AML.results)
+# plot results
+plot(AML.results, type=c("g", "o"))
+```
+
+```{r}
+# five feature-selected enzymes into new dataframe
+select_enzymes <- data.frame(enzymes$CCND3,enzymes$PA2G4.pS65, enzymes$CAV1, enzymes$H3K27Me3, enzymes$SIRT1 )
+```
+
+### Silhouette Function
+```{r}
+k.max <- 15
+data <- select_enzymes
+sil <- rep(0, k.max)
+```
+
+```{r}
+# compute the average silhouette width
+# k = 2 to k = 15
+for(i in 2:k.max){
+  km.res <- kmeans(data, centers = i, nstart = 25)
+  ss <- silhouette(km.res$cluster, dist(data))
+  sil[i] <- mean(ss[, 3])
+}
+```
+
+```{r}
+# plot the  average silhouette width
+# optimal number of clusters is 3
+plot(1:k.max, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+```
+
+### K-means
+```{r}
+set.seed(876)
+autoplot(kmeans(select_enzymes, 3), data = select_enzymes)
+```
+
+### Logistic Regression
+
+```{r}
+LR_df <- data.frame(enzymes$CCND3,enzymes$PA2G4.pS65, enzymes$CAV1, enzymes$H3K27Me3, enzymes$SIRT1, enzymes$STATUS)
+as.tibble(LR_df)
+```
+
+
+```{r}
+LR_df$STATUS <- as.factor(LR_df$enzymes.STATUS)
+LR_df$CCND3 <- as.numeric(LR_df$enzymes.CCND3)
+
+
+ctrl <- trainControl(method = "repeatedcv", repeats = 5, classProbs = T, savePredictions = T)
+
+logistic_regression <- train(enzymes.STATUS ~ enzymes.CCND3 + enzymes.PA2G4.pS65 + enzymes.CAV1 + enzymes.H3K27Me3 + enzymes.SIRT1, data = LR_df, method = "glm", family= "binomial", trControl = ctrl)
+```
+
+```{r}
+logistic_regression
+```
+
+```{r}
+summary(logistic_regression)
+```
+
+```{r}
+# ROC Curve for training data
+plot(x = roc(predictor = logistic_regression$pred$NOT_SURVIVED, response = logistic_regression$pred$obs)$specificities, y = roc(predictor = logistic_regression$pred$NOT_SURVIVED, response = logistic_regression$pred$obs)$sensitivities, col= "purple", xlim = c(1, 0), type ="l", ylab = "Sensitivity", xlab = "Specificity")
+legend("bottomright", legend = paste("NOT_SURVIVED vs. SURVIVED: ", roc(predictor = logistic_regression$pred$NOT_SURVIVED, response = logistic_regression$pred$obs)$auc
+, sep = ""), col = c("purple"), fill = c("purple"))
+```
+
+Confusion Matrix for Test Data
+```{r}
+conf <- table(pred=logistic_regression_predict_class, true=LR_df$STATUS)
+conf
+```
+
+```{r}
+#library(PresenceAbsence)
+pcc(conf, st.dev=TRUE)
+```
+
+
